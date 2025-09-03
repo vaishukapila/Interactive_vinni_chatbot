@@ -1,0 +1,92 @@
+**CODE**
+
+import streamlit as st
+import os
+from google import genai
+from google.genai import types
+
+st.markdown("""
+    <style>
+    .chatbox {
+        background-color: #f4f4f9;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 10px;
+    }
+    .user {
+        color: #1f77b4;
+        font-weight: bold;
+    }
+    .bot {
+        color: #ff7f0e;
+        font-weight: bold;
+    }
+    .send-button {
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin-top: 10px;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+    .send-button:hover {
+        background-color: #45a049;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+st.title("🌈 Interactive Vinny AI Chatbot")
+
+# Gemini API Setup
+api_key = "YOUR_GEMINI-API_KEY_HERE"
+os.environ["GEMINI_API_KEY"] = api_key
+client = genai.Client(api_key=api_key)
+model = "gemini-2.0-flash"
+
+# Streamlit Chat Interface
+if 'messages' not in st.session_state:
+    st.session_state['messages'] = []
+
+user_input = st.text_input("You:")
+
+if st.button("Send", key="send_button", help="Send your message") and user_input.strip():
+
+    def generate_response(message):
+        contents = [
+            types.Content(
+                role="user",
+                parts=[types.Part.from_text(text=message)]
+            )
+        ]
+        config = types.GenerateContentConfig(
+            temperature=1,
+            top_p=0.95,
+            top_k=40,
+            max_output_tokens=8192,
+            response_mime_type="text/plain"
+        )
+        response_text = ""
+        for chunk in client.models.generate_content_stream(
+            model=model,
+            contents=contents,
+            config=config
+        ):
+            response_text += chunk.text
+        return response_text
+
+    # Append user input to chat history
+    st.session_state['messages'].append(("You", user_input))
+
+    # Get response and append to chat history
+    bot_response = generate_response(user_input)
+    st.session_state['messages'].append(("Gemini", bot_response))
+
+# Display the conversation history
+for sender, message in st.session_state['messages']:
+    role_class = "user" if sender == "You" else "bot"
+    st.markdown(f'<div class="chatbox {role_class}"><strong class="{role_class}">{sender}:</strong> {message}</div>', unsafe_allow_html=True)
