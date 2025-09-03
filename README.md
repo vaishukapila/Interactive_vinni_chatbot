@@ -1,4 +1,4 @@
-#**Interactive-Vinny-chatbot
+#**Interactive-Vinny-chatbot**
 
 I developed an interactive AI chatbot using Streamlit and the Google Gemini API. The chatbot provides a clean, web-based interface where users can type their questions and receive intelligent responses in real time. The conversation history is stored during the session, making it feel more natural and continuous.
 
